@@ -1,5 +1,5 @@
 # ----- Makefile (root) -----
-
+SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 ## Print available targets
@@ -17,13 +17,6 @@ lint: ## Lint repo (placeholder)
 test: ## Run tests (placeholder)
 	@echo "No tests yet."
 
-# ---------- Local Orchestration (to be used in Step 2) ----------
-local-up: ## Start local stack (added in Step 2)
-	@echo "Stub. Implement in Step 2."
-
-local-down: ## Stop local stack (added in Step 2)
-	@echo "Stub. Implement in Step 2."
-
 seed: ## Seed local data (added later)
 	@echo "Stub. Implement after DB is ready."
 
@@ -32,36 +25,32 @@ COMPOSE := docker compose --env-file .env.dev
 
 .PHONY: local-up local-init local-health local-logs local-down local-nuke
 
-## Start local stack (Postgres, Redis, RabbitMQ, Localstack)
-local-up:
+local-up: ## Start local stack (Postgres, Redis, RabbitMQ, Localstack)
 	@$(COMPOSE) up -d
-	@echo "Waiting for Localstack to be healthy..."
-	@bash -c 'for i in {1..30}; do \
-		status=$$(docker inspect -f "{{.State.Health.Status}}" cityfix-localstack 2>/dev/null || echo "unknown"); \
-		echo "Localstack health: $$status"; \
-		[ "$$status" = "healthy" ] && exit 0; \
+	@echo "Waiting for Localstack (aws s3 ls)..."
+	@i=1; \
+	while [ $$i -le 90 ]; do \
+		aws --endpoint-url http://localhost:4566 s3 ls >/dev/null 2>&1 && echo "Localstack ready" && exit 0; \
 		sleep 2; \
-	done; echo "ERROR 2.D.E2: Localstack not healthy after timeout" >&2; exit 1'
+		i=$$((i+1)); \
+	done; \
+	echo "ERROR 2.E.E8: Localstack AWS CLI readiness check failed" >&2; exit 1
 
-## Initialize Localstack (S3 bucket, SES identity, SSM param)
-local-init:
+local-init: ## Initialize Localstack (S3 bucket, SES identity, SSM param)
 	@./scripts/localstack-init.sh || { echo "ERROR 2.D.E3: localstack-init failed"; exit 1; }
 
-## Show container health statuses
-local-health:
-	@echo "Postgres:   $$(docker inspect -f '{{.State.Health.Status}}' cityfix-postgres 2>/dev/null || echo 'n/a')"
-	@echo "Redis:      $$(docker inspect -f '{{.State.Health.Status}}' cityfix-redis 2>/dev/null || echo 'n/a')"
-	@echo "RabbitMQ:   $$(docker inspect -f '{{.State.Health.Status}}' cityfix-rabbitmq 2>/dev/null || echo 'n/a')"
-	@echo "Localstack: $$(docker inspect -f '{{.State.Health.Status}}' cityfix-localstack 2>/dev/null || echo 'n/a')"
+local-health: ## Show container health statuses
+	@printf "Postgres:   "; docker exec cityfix-postgres pg_isready -U postgres -d cityfix -h localhost >/dev/null 2>&1 && echo "ready" || echo "not-ready"
+	@printf "Redis:      "; docker exec cityfix-redis redis-cli ping >/dev/null 2>&1 && echo "ready" || echo "not-ready"
+	@printf "RabbitMQ:   "; docker exec cityfix-rabbitmq rabbitmq-diagnostics -q ping >/dev/null 2>&1 && echo "ready" || echo "not-ready"
+	@printf "Localstack: "; aws --endpoint-url http://localhost:4566 s3 ls >/dev/null 2>&1 && echo "ready" || echo "not-ready"
 
-## Tail logs for all services
-local-logs:
+local-logs: ## Tail logs for all services
 	@$(COMPOSE) logs -f
 
-## Stop stack (keep volumes)
-local-down:
+local-down: ## Stop stack (keep volumes)
 	@$(COMPOSE) down
 
-## Nuke stack (remove volumes)
-local-nuke:
+local-nuke: ## Nuke stack (remove volumes)
 	@$(COMPOSE) down -v
+
