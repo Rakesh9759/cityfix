@@ -19,7 +19,7 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        # Optional; helps avoid dialect errors if URL/envs are missing
+        # Optional; Hibernate picks PostgreSQL automatically from the JDBC URL
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   data:
@@ -37,18 +37,14 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
+    baseline-on-migrate: true   # ok for your current DB; on a fresh DB you can set false
 
 app:
+  security:
+    jwt:
+      # Use a long dev fallback so the app still boots if JWT_SECRET isn't set (≥ 32 bytes for HS256).
+      secret: ${JWT_SECRET:dev-secret-please-change-me-0123456789abcdef0123456789abcd}
+      expires-in-seconds: ${JWT_EXPIRES:86400}   # 24h
+
   storage:
     upload-dir: ${FILE_UPLOAD_DIR:${user.home}/cityfix_uploads}
-

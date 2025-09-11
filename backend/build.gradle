@@ -26,27 +26,35 @@ java {
 repositories { mavenCentral() }
 
 dependencies {
-    // --- App runtime ---
+    // Spring Boot starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
-    // JDBC driver (app runtime)
-    runtimeOnly 'org.postgresql:postgresql:42.7.4'
 
-    // Flyway for the running app (Spring Boot auto-migrate)
+    // NEW: Security + JWT
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'  // for Jackson serializer
+
+    // DB drivers
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Flyway (you’re already using these)
     implementation "org.flywaydb:flyway-core:10.16.0"
     implementation "org.flywaydb:flyway-database-postgresql:10.16.0"
 
-    // --- Tests ---
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 
 flyway {
     // Defaults for local dev; can be overridden by env vars
