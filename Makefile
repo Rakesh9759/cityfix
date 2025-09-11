@@ -53,4 +53,9 @@ local-down: ## Stop stack (keep volumes)
 
 local-nuke: ## Nuke stack (remove volumes)
 	@$(COMPOSE) down -v
+s3-test: ## Upload & list a test object in Localstack S3 (host presign+curl)
+	@set -a; . ./.env.dev; set +a; \
+	URL=$$(aws --endpoint-url http://localhost:4566 s3 presign s3://$$S3_BUCKET/test/README.md --expires-in 300); \
+	curl -X PUT --upload-file README.md "$$URL" >/dev/null 2>&1 && \
+	aws --endpoint-url http://localhost:4566 s3 ls "s3://$$S3_BUCKET/test/"
 

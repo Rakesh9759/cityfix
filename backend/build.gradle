@@ -1,7 +1,18 @@
+// --- Buildscript classpath for Flyway Gradle tasks (plugin side) ---
+// MUST come before the plugins { } block.
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath "org.postgresql:postgresql:42.7.4"
+        classpath "org.flywaydb:flyway-database-postgresql:10.16.0"
+    }
+}
+
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.5'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '10.16.0'
 }
 
 group = 'com.cityfix'
@@ -9,31 +20,41 @@ version = '0.0.1-SNAPSHOT'
 description = 'CityFix API'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
 }
 
-repositories {
-	mavenCentral()
-}
+repositories { mavenCentral() }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-amqp'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	runtimeOnly 'org.postgresql:postgresql'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.amqp:spring-rabbit-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-        implementation 'org.flywaydb:flyway-core'
-        implementation 'org.flywaydb:flyway-database-postgresql'
+    // --- App runtime ---
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // JDBC driver (app runtime)
+    runtimeOnly 'org.postgresql:postgresql:42.7.4'
+
+    // Flyway for the running app (Spring Boot auto-migrate)
+    implementation "org.flywaydb:flyway-core:10.16.0"
+    implementation "org.flywaydb:flyway-database-postgresql:10.16.0"
+
+    // --- Tests ---
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+flyway {
+    // Defaults for local dev; can be overridden by env vars
+    url       = System.getenv('FLYWAY_URL') ?: System.getenv('DB_URL') ?: 'jdbc:postgresql://localhost:5432/cityfix'
+    user      = System.getenv('FLYWAY_USER') ?: System.getenv('DB_USER') ?: 'postgres'
+    password  = System.getenv('FLYWAY_PASSWORD') ?: System.getenv('DB_PASS') ?: 'postgres'
+    locations = ['classpath:db/migration']
+    baselineOnMigrate = false
 }
+
+tasks.named('test') { useJUnitPlatform() }
