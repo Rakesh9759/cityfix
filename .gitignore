@@ -30,3 +30,8 @@ terraform.tfvars.json
 
 # Docker
 *.env
+
+# Local environment files
+.env
+.env.*
+*.env
