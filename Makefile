@@ -26,3 +26,42 @@ local-down: ## Stop local stack (added in Step 2)
 
 seed: ## Seed local data (added later)
 	@echo "Stub. Implement after DB is ready."
+
+# ---------- Local Stack ----------
+COMPOSE := docker compose --env-file .env.dev
+
+.PHONY: local-up local-init local-health local-logs local-down local-nuke
+
+## Start local stack (Postgres, Redis, RabbitMQ, Localstack)
+local-up:
+	@$(COMPOSE) up -d
+	@echo "Waiting for Localstack to be healthy..."
+	@bash -c 'for i in {1..30}; do \
+		status=$$(docker inspect -f "{{.State.Health.Status}}" cityfix-localstack 2>/dev/null || echo "unknown"); \
+		echo "Localstack health: $$status"; \
+		[ "$$status" = "healthy" ] && exit 0; \
+		sleep 2; \
+	done; echo "ERROR 2.D.E2: Localstack not healthy after timeout" >&2; exit 1'
+
+## Initialize Localstack (S3 bucket, SES identity, SSM param)
+local-init:
+	@./scripts/localstack-init.sh || { echo "ERROR 2.D.E3: localstack-init failed"; exit 1; }
+
+## Show container health statuses
+local-health:
+	@echo "Postgres:   $$(docker inspect -f '{{.State.Health.Status}}' cityfix-postgres 2>/dev/null || echo 'n/a')"
+	@echo "Redis:      $$(docker inspect -f '{{.State.Health.Status}}' cityfix-redis 2>/dev/null || echo 'n/a')"
+	@echo "RabbitMQ:   $$(docker inspect -f '{{.State.Health.Status}}' cityfix-rabbitmq 2>/dev/null || echo 'n/a')"
+	@echo "Localstack: $$(docker inspect -f '{{.State.Health.Status}}' cityfix-localstack 2>/dev/null || echo 'n/a')"
+
+## Tail logs for all services
+local-logs:
+	@$(COMPOSE) logs -f
+
+## Stop stack (keep volumes)
+local-down:
+	@$(COMPOSE) down
+
+## Nuke stack (remove volumes)
+local-nuke:
+	@$(COMPOSE) down -v
