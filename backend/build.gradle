@@ -1,15 +1,74 @@
-// --- Buildscript classpath for Flyway Gradle tasks (plugin side) ---
-// MUST come before the plugins { } block.
-buildscript {
-    repositories { mavenCentral() }
-    dependencies {
-        classpath "org.postgresql:postgresql:42.7.4"
-        classpath "org.flywaydb:flyway-database-postgresql:10.16.0"
-    }
-}
+// // --- Buildscript classpath for Flyway Gradle tasks (plugin side) ---
+// // MUST come before the plugins { } block.
+// buildscript {
+//     repositories { mavenCentral() }
+//     dependencies {
+//         classpath "org.postgresql:postgresql:42.7.4"
+//         classpath "org.flywaydb:flyway-database-postgresql:10.16.0"
+//         implementation "com.drewnoakes:metadata-extractor:2.18.0"   // EXIF
+//         implementation "net.coobird:thumbnailator:0.4.20"           // thumbnails
+//     }
+// }
 
+// plugins {
+//     id 'java'
+//     id 'org.springframework.boot' version '3.5.5'
+//     id 'io.spring.dependency-management' version '1.1.7'
+//     id 'org.flywaydb.flyway' version '10.16.0'
+// }
+
+// group = 'com.cityfix'
+// version = '0.0.1-SNAPSHOT'
+// description = 'CityFix API'
+
+// java {
+//     toolchain { languageVersion = JavaLanguageVersion.of(21) }
+// }
+
+// repositories { mavenCentral() }
+
+// dependencies {
+//     // Spring Boot starters
+//     implementation 'org.springframework.boot:spring-boot-starter-web'
+//     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//     implementation 'org.springframework.boot:spring-boot-starter-validation'
+//     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+//     implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+//     // NEW: Security + JWT
+//     implementation 'org.springframework.boot:spring-boot-starter-security'
+//     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+//     runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.11.5'
+//     runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'  // for Jackson serializer
+
+//     // DB drivers
+//     runtimeOnly 'org.postgresql:postgresql'
+
+//     // Flyway (you’re already using these)
+//     implementation "org.flywaydb:flyway-core:10.16.0"
+//     implementation "org.flywaydb:flyway-database-postgresql:10.16.0"
+
+//     // Test
+//     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//     testImplementation 'org.springframework.amqp:spring-rabbit-test'
+//     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+// }
+
+
+// flyway {
+//     // Defaults for local dev; can be overridden by env vars
+//     url       = System.getenv('FLYWAY_URL') ?: System.getenv('DB_URL') ?: 'jdbc:postgresql://localhost:5432/cityfix'
+//     user      = System.getenv('FLYWAY_USER') ?: System.getenv('DB_USER') ?: 'postgres'
+//     password  = System.getenv('FLYWAY_PASSWORD') ?: System.getenv('DB_PASS') ?: 'postgres'
+//     locations = ['classpath:db/migration']
+//     baselineOnMigrate = false
+// }
+
+// tasks.named('test') { useJUnitPlatform() }
 plugins {
-    id 'java'
+    id 'java'                                    // gives you implementation/testImplementation configs
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.flywaydb.flyway' version '10.16.0'
@@ -23,7 +82,9 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+}
 
 dependencies {
     // Spring Boot starters
@@ -35,19 +96,22 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
+    // Step 8: EXIF + thumbnails
+    implementation 'com.drewnoakes:metadata-extractor:2.18.0'
+    implementation 'net.coobird:thumbnailator:0.4.20'
 
-    // NEW: Security + JWT
+    // Security + JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'  // for Jackson serializer
+    runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // DB drivers
+    // Database
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Flyway (you’re already using these)
-    implementation "org.flywaydb:flyway-core:10.16.0"
-    implementation "org.flywaydb:flyway-database-postgresql:10.16.0"
+    // Flyway runtime (migrations at app startup)
+    implementation 'org.flywaydb:flyway-core:10.16.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.16.0'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -55,9 +119,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-
 flyway {
-    // Defaults for local dev; can be overridden by env vars
+    // Defaults for local dev; override with env vars as needed
     url       = System.getenv('FLYWAY_URL') ?: System.getenv('DB_URL') ?: 'jdbc:postgresql://localhost:5432/cityfix'
     user      = System.getenv('FLYWAY_USER') ?: System.getenv('DB_USER') ?: 'postgres'
     password  = System.getenv('FLYWAY_PASSWORD') ?: System.getenv('DB_PASS') ?: 'postgres'
@@ -65,4 +128,6 @@ flyway {
     baselineOnMigrate = false
 }
 
-tasks.named('test') { useJUnitPlatform() }
+tasks.named('test') {
+    useJUnitPlatform()
+}

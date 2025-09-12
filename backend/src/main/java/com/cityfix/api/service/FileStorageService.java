@@ -56,4 +56,8 @@ public class FileStorageService {
     if (!StringUtils.hasText(key) || key.contains("..")) throw new IllegalArgumentException("Bad key");
     return root.resolve(key).normalize();
   }
+
+  public Path getRoot() {
+    return root;
+  }
 }

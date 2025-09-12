@@ -32,41 +32,45 @@ public class IssueModelAssembler implements RepresentationModelAssembler<Issue, 
     );
 
     var model = EntityModel.of(dto);
+    var idStr = issue.getId().toString();
 
     // self
-    model.add(linkTo(methodOn(IssueController.class)
-        .get(issue.getId().toString()))
-        .withSelfRel());
+    model.add(
+        linkTo(methodOn(IssueController.class).get(idStr)).withSelfRel()
+    );
 
     // presign (dev flow)
-    model.add(Link.of(
-        linkTo(methodOn(IssueController.class)
-            .presignImages(issue.getId().toString(), null))
-            .toUri().toString(),
-        "images:presign"));
+    model.add(
+        Link.of(
+            linkTo(methodOn(IssueController.class).presignImages(idStr, null))
+                .toUri().toString(),
+            "images:presign"
+        )
+    );
 
-    // upload (dev flow) — build path directly to avoid checked-exception signature
-    String uploadHref = linkTo(IssueController.class)
-        .slash("issues")
-        .slash(issue.getId().toString())
-        .slash("images")
-        .slash("upload")
-        .toUri()
-        .toString();
-    model.add(Link.of(uploadHref, "images:upload"));
+    // upload (build via controller method — NO manual ".slash(\"issues\")")
+    model.add(
+        linkTo(methodOn(IssueController.class).uploadImage(idStr, null))
+            .withRel("images:upload")
+    );
 
-    // future actions
-    model.add(Link.of(
-        linkTo(methodOn(IssueController.class)
-            .subscribe(issue.getId().toString()))
-            .toUri().toString(),
-        "subscribe"));
+    // subscribe
+    model.add(
+        Link.of(
+            linkTo(methodOn(IssueController.class).subscribe(idStr))
+                .toUri().toString(),
+            "subscribe"
+        )
+    );
 
-    model.add(Link.of(
-        linkTo(methodOn(IssueController.class)
-            .transition(issue.getId().toString(), null))
-            .toUri().toString(),
-        "transition"));
+    // transition
+    model.add(
+        Link.of(
+            linkTo(methodOn(IssueController.class).transition(idStr, null))
+                .toUri().toString(),
+            "transition"
+        )
+    );
 
     return model;
   }
