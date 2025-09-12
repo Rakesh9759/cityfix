@@ -28,11 +28,8 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/actuator/**",
-                    "/api/hello",
-                    "/auth/**"
-                ).permitAll()
+                .requestMatchers("/actuator/**", "/api/hello", "/auth/**").permitAll()
+                .requestMatchers("/v1/issues", "/v1/issues/**").permitAll() // allow issues endpoints for now
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
