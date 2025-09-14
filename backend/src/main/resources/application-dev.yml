@@ -1,0 +1,11 @@
+aws:
+  region: us-east-1
+  ses:
+    endpoint: http://localhost:4566   # Localstack
+    from: no-reply@cityfix.local      # “verified” sender for local
+
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML

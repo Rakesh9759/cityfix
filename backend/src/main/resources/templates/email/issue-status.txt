@@ -1,0 +1,6 @@
+Issue [[${issueId}]] status changed
+From: [[${oldStatus}]] -> To: [[${newStatus}]]
+
+[[${note}]] 
+
+Unsubscribe: [[${unsubscribeUrl}]]

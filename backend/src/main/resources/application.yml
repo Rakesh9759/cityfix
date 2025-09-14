@@ -60,3 +60,8 @@ app:
 
   storage:
     upload-dir: ${FILE_UPLOAD_DIR:${user.home}/cityfix_uploads}
+
+  # messaging:
+  #   status:
+  #     exchange: ""
+  #     routing: issue.status.changed

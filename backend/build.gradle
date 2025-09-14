@@ -95,6 +95,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+    implementation 'software.amazon.awssdk:ses:2.25.18'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    
 
     // Step 8: EXIF + thumbnails
     implementation 'com.drewnoakes:metadata-extractor:2.18.0'

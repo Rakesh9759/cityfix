@@ -1,0 +1,7 @@
+<!doctype html>
+<html><body>
+  <h2>Issue [[${issueId}]] status changed</h2>
+  <p><b>From:</b> [[${oldStatus}]] → <b>To:</b> [[${newStatus}]]</p>
+  <p th:if="${note}">Note: <i>[[${note}]]</i></p>
+  <p><a th:href="${unsubscribeUrl}">Unsubscribe</a></p>
+</body></html>

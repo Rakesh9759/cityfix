@@ -21,6 +21,12 @@ public class RabbitConfig {
   public static final String RK_IMAGE_INGEST = "image.ingest";
   public static final String QUEUE_STATUS_EVENTS = "status.events";
   public static final String RK_STATUS_CHANGED   = "issue.status.changed";
+  public static final String EXCHANGE_EVENTS = "cityfix.events";
+  public static final String RK_ISSUE_STATUS_CHANGED = "issue.status.changed"; // optional helper
+  public static final String EXCHANGE_EVENTS = "cityfix.events";
+  public static final String QUEUE_NOTIFICATIONS = "cityfix.notifications";
+  public static final String RK_STATUS_CHANGED = "issue.status.changed";
+
 
   @Bean
   org.springframework.amqp.core.Queue statusEventsQueue() {
@@ -62,6 +68,11 @@ public class RabbitConfig {
   }
 
   @Bean
+  public TopicExchange cityfixEventsExchange() {
+   return new TopicExchange(EXCHANGE_EVENTS, true, false);
+  }
+
+  @Bean
   SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
       ConnectionFactory cf, Jackson2JsonMessageConverter conv) {
     SimpleRabbitListenerContainerFactory f = new SimpleRabbitListenerContainerFactory();
@@ -71,4 +82,13 @@ public class RabbitConfig {
     f.setMaxConcurrentConsumers(2);
     return f;
   }
+
+  @Bean TopicExchange eventsExchange() { return new TopicExchange(EXCHANGE_EVENTS, true, false); }
+
+  @Bean Queue notificationsQueue() { return QueueBuilder.durable(QUEUE_NOTIFICATIONS).build(); }
+
+  @Bean Binding notificationsBinding() { return BindingBuilder.bind(notificationsQueue())
+      .to(eventsExchange())
+      .with(RK_STATUS_CHANGED);
+}
 }
